@@ -30,9 +30,9 @@ The following are our draft proposals for the interface, written in Web IDL.
 
 ### Filesystem Calls
 
-All filesystem calls are accesible through a global NativeIO instace.
+All filesystem calls are accesible through a global NativeIO instance.
 
-```
+```webidl
 // IMPORTANT: filenames are restricted to lower-case alphanumeric and underscore
 // (a-z, 0-9, _). This restricted character set should work on most filesystems
 // across Linux, Windows, and Mac platforms, because some systems, e.g., treat
@@ -60,7 +60,7 @@ For this API we opted to have a minimal set of functions. This reduces the surfa
 
 The following functions are accessible after opening a FileHandle object.
 
-```
+```webidl
 [
     Constructor
 ] dictionary FileAttributes {
