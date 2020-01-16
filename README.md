@@ -1,12 +1,20 @@
 # NativeIO API
 
+## Authors:
+
+* Emanuel Krivoy (krivoy@google.com)
+* Jose Lopes (jabolopes@google.com)
+
+## Participate
+
+* Issue Tracker: https://crbug.com/914488
+* Discussion forum: https://github.com/fivedots/nativeio-explainer
+
 ## Introduction
 
 The NativeIO API is a new performant and low-level storage API that resembles a very basic filesystem. It is isolated by orgin and provides access to file handles. 
 
-
 It's particularly useful when porting native applications or storage components (e.g. by compiling them to WebAssembly) that expect a filesystem-like interface.
-
 
 ## Goals
 
@@ -42,6 +50,9 @@ interface NativeIO {
     // Opens the file with the given name.
     [RaisesException] FileHandle openFile(DOMString name);
 
+    // Create the file with the given name if it doesn't exist.
+    [RaisesException] void createFile(DOMString name);
+
     // Returns the existing file names that have the given prefix
     [RaisesException] sequence<DOMString> listByPrefix(DOMString namePrefix);
 
@@ -71,7 +82,6 @@ The following functions are accessible after opening a FileHandle object.
 interface FileHandle {
     // Returns the file attributes.
     [RaisesException] FileAttributes getAttributes();
-
 
     // Sets the file attributes. The API does not guarantee that different
     // attributes will be updated atomically because of limitations in the
@@ -112,24 +122,31 @@ interface FileHandle {
 ```
 
 ### Examples
+
 #### Reads and writes
+
 ```javascript
-fileHandle = io.openFile("hello-world.txt")
+handle = io.openFile("hello-world.txt") // opens a file (creating it if needed)
+try {
+  writeBuffer = new Int8Array([3, 1, 4])
+  handle.write(writeBuffer, 0) // returns 3, the number of bytes written
 
-writeBuffer = new Int8Array([3, 1, 4])
-f.write(writeBuffer, 0) // return 3, the number of bytes written
+  readBuffer = new Int8Array(3) // creates a new array of length 3
+  handle.read(readBuffer, 0, 3) // returns 3, the number of bytes read
 
-readBuffer = new Int8Array(3) // creates a new array of length 3
-f.read(readBuffer, 0, 3) // returns 3, the number of bytes read
-console.log(readBuffer) // Int8Array(3) [1, 2, 3]
-
+  console.log(readBuffer) // Int8Array(3) [1, 2, 3]
+} finally {
+  handle.close()
+}
 ```
+
 #### List files by prefix
+
 ```javascript
 // Create the files
-io.openFile("sunrise.jpg")
-io.openFile("noon.jpg")
-io.openFile("sunset.jpg")
+io.createFile("sunrise.jpg")
+io.createFile("noon.jpg")
+io.createFile("sunset.jpg")
 
 io.listByPrefix("sun") // ["sunset.jpg", "sunrise.jpg"]
 
@@ -137,7 +154,16 @@ io.listByPrefix("sun") // ["sunset.jpg", "sunrise.jpg"]
 io.listByPrefix("") // ["sunset.jpg", "sunrise.jpg", "noon.jpg"]
 ```
 
+#### Rename and unlink
+
+```javascript
+io.createFile("file.txt")
+io.rename("file.txt", "newfile.txt")
+io.unlink("newfile.txt")
+```
+
 ## Prototypes
+
 _TODO: Link demos and code once they are easily shareable_
 
 _TODO: Link benchmark results_
@@ -147,6 +173,5 @@ In order to discover the functional requirements and validate this API, we decid
 In order to run the databases as WebAssembly modules, we decided to compile them with [Emscripten](https://emscripten.org/). This led to us adding a new Emscripten filesystem that uses NativeIO to emulate more complex functionality. Both candidate libraries were succesfully run and showed signnificant performance improvements when compared to the same libraries running on top of the [Chrome filesystem](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestFileSystem).
 
 ## Security Considerations
+
 The API will have similar security policies to the one used in modern web storage APIs. Access to files will be isolated per origin. Quota checks will be used to prevent misuse of user resources.
-
-
