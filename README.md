@@ -10,6 +10,26 @@
 * Issue Tracker: https://crbug.com/914488
 * Discussion forum: https://github.com/fivedots/nativeio-explainer
 
+## Table of Contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Introduction](#introduction)
+- [Goals](#goals)
+- [Interface and Examples](#interface-and-examples)
+  - [Filesystem Calls](#filesystem-calls)
+  - [File Handles](#file-handles)
+  - [Examples](#examples)
+    - [Reads and writes](#reads-and-writes)
+    - [List files by prefix](#list-files-by-prefix)
+    - [Rename and unlink](#rename-and-unlink)
+- [Prototypes](#prototypes)
+- [Security Considerations](#security-considerations)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Introduction
 
 The NativeIO API is a new performant and low-level storage API that resembles a very basic filesystem. It is isolated by orgin and provides access to file handles. 
