@@ -109,6 +109,9 @@ workers. That way we are not adding blocking functionality to the main thread.
 
 All filesystem calls are accessible through a global NativeIO instance.
 
+IMPORTANT: At the moment, this WebIDL is written in synchronous form but we are
+still exploring the possibility of having WebAssembly call an async IO API.
+
 ```webidl
 // IMPORTANT: filenames are restricted to lower-case alphanumeric and underscore
 // (a-z, 0-9, _). This restricted character set should work on most filesystems
@@ -122,14 +125,15 @@ interface NativeIO {
     // Create the file with the given name if it doesn't exist.
     [RaisesException] void createFile(DOMString name);
 
-    // Returns the existing file names that have the given prefix
-    [RaisesException] sequence<DOMString> listByPrefix(DOMString namePrefix);
-
-    // Renames the file from old name to new name atomically.
+    // Renames the file from old name to new name atomically. Open file handles
+    // remain unaffected by this.
     [RaisesException] void rename(DOMString oldName, DOMString newName);
 
-    // Unlinks the file from the filesystem.
+    // Unlinks the file from the filesystem. Open file handles remain unaffected by this.
     [RaisesException] void unlink(DOMString name);
+
+    // Returns all existing file names (in no specific order).
+    [RaisesException] sequence<DOMString> List();
 };
 ```
 
@@ -154,9 +158,9 @@ interface FileHandle {
     // Returns the file attributes.
     [RaisesException] FileAttributes getAttributes();
 
-    // Sets the file attributes. The API does not guarantee that different
-    // attributes will be updated atomically because of limitations in the
-    // underlying file systems on different platforms.
+    // Sets the file attributes, such as file size (resize or truncation).
+    // The API does not guarantee that different attributes will be updated atomically because
+    // of limitations in the underlying file systems of the different platforms.
     [RaisesException] void setAttributes(FileAttributes attributes);
 
     // Reads the contents of the file at the given offset into the given buffer. The number of
@@ -175,18 +179,16 @@ interface FileHandle {
 
     // Synchronizes (i.e., flushes) a file’s in-core state with the storage device.
     //
-    // Important: write only guarantees that the data has been written to the file
-    // but it does not guarantee that the data has been persisted to the
-    // underlying storage. To ensure that no data loss occurs on system crash,
-    // sync must be called and it must return successfully without raising an
-    // exception.
+    // Important: write only guarantees that the data has been written to the file but it does
+    // not guarantee that the data has been persisted to the underlying storage. To ensure
+    // that no data loss occurs on system crash, sync must be called and it must return
+    // successfully without raising an exception.
     [RaisesException] void sync();
 
     // Flushes the files and closes the file handle.
     //
-    // This always closes the file handle even if an error is thrown. This must
-    // be called at least once to avoid leaking resources. Calling this when the
-    // file is already closed is a no-op.
+    // This always closes the file handle even if an error is thrown. This must be called at least
+    // once to avoid leaking resources. Calling this when the file is already closed is a no-op.
     [RaisesException] void close();
 };
 ```
@@ -195,13 +197,16 @@ interface FileHandle {
 
 #### Reads and writes
 
+Open a file, write to it, read from it, and close it to guarantee integrity of
+the file’s contents.
+
 ```javascript
-handle = io.openFile("hello-world") // opens a file (creating it if needed)
+var handle = io.openFile("hello-world") // opens a file (creating it if needed)
 try {
-  writeBuffer = new Int8Array([3, 1, 4])
+  var writeBuffer = new Int8Array([3, 1, 4])
   handle.write(writeBuffer, 0) // returns 3, the number of bytes written
 
-  readBuffer = new Int8Array(3) // creates a new array of length 3
+  var readBuffer = new Int8Array(3) // creates a new array of length 3
   handle.read(readBuffer, 0, 3) // returns 3, the number of bytes read
 
   console.log(readBuffer) // Int8Array(3) [1, 2, 3]
@@ -212,19 +217,18 @@ try {
 
 #### List files by prefix
 
+Create a few files and list them.
+
 ```javascript
-// Create the files
 io.createFile("sunrise")
 io.createFile("noon")
 io.createFile("sunset")
-
-io.listByPrefix("sun") // ["sunset", "sunrise"]
-
-// the empty string matches all existing files
-io.listByPrefix("") // ["sunset", "sunrise", "noon"]
+io.list()  // ["sunset", "sunrise", "noon"]
 ```
 
 #### Rename and unlink
+
+Create a file, rename it and unlink it.
 
 ```javascript
 io.createFile("file")
@@ -256,6 +260,10 @@ eventual design decision.
 
 ## Prototypes
 
+See the
+[NativeIO](https://github.com/jabolopes/emfs/blob/master/library_nativeiofs.js)
+FS for a complete Emscripten filesystem that uses the NativeIO API.
+
 _TODO: Link demos and code once they are easily shareable_
 
 _TODO: Link benchmark results_
@@ -274,6 +282,14 @@ the
 [Chrome filesystem](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestFileSystem).
 
 ## Security Considerations
+
+Modern storage Web APIs, such as WebSQL and IndexedDB, are origin-bound. This
+means that databases created through these APIs are only accessible to the
+creating origin. It also means that they won’t be accessible from opaque origins
+(including file://). In order to maintain the same separation, the NativeIO API
+should also be origin-bound, i.e., the files created by an origin will be
+sandboxed to that single origin (which, similarly to other APIs, may include
+also extension origins).
 
 The API will have similar security policies to the one used in modern web
 storage APIs. Access to files will be isolated per origin. Quota checks will be
