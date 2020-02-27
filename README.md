@@ -25,6 +25,7 @@
     - [Reads and writes](#reads-and-writes)
     - [List files by prefix](#list-files-by-prefix)
     - [Rename and unlink](#rename-and-unlink)
+    - [Temporary files](#temporary-files)
 - [Design Decisions](#design-decisions)
   - [Sync vs Async](#sync-vs-async)
 - [Prototypes](#prototypes)
@@ -234,6 +235,19 @@ Create a file, rename it and unlink it.
 io.createFile("file")
 io.rename("file", "newfile")
 io.unlink("newfile")
+```
+
+#### Temporary files
+
+Create a temporary file by opening a file and immediately unlinking. The file
+remains valid until the last handle to it is closed. When that happens, the file
+is deleted.
+
+```javascript
+var handle = io.openFile("hello-world")
+io.unlink("hello-world")  // Unlink the filename, but the file handle remains valid.
+...
+handle.close()  // The last handle to the file is closed, so the file is deleted.
 ```
 
 ## Design Decisions
