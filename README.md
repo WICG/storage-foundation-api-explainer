@@ -2,19 +2,18 @@
 
 ## Authors:
 
-* Emanuel Krivoy (krivoy@google.com)
-* Jose Lopes (jabolopes@google.com)
+*   Emanuel Krivoy (krivoy@google.com)
+*   Jose Lopes (jabolopes@google.com)
 
 ## Participate
 
-* Issue Tracker: https://crbug.com/914488
-* Discussion forum: https://github.com/fivedots/nativeio-explainer
+*   Issue Tracker: https://crbug.com/914488
+*   Discussion forum: https://github.com/fivedots/nativeio-explainer
 
 ## Table of Contents
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 
 - [Introduction](#introduction)
 - [Requirements](#requirements)
@@ -265,8 +264,9 @@ size and execution time in the usual case and up to a 5x increase in extreme
 cases like SQLite
 ([source](https://kripken.github.io/blog/wasm/2019/07/16/asyncify.html)).
 Existing workarounds (like having to call
-[FS.syncfs](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.syncfs from an asynchronous context)
-lead to weak persistence guarantees and to data inconsistencies between tabs.
+[FS.syncfs](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.syncfs)
+from an asynchronous context) lead to weak persistence guarantees and to data
+inconsistencies between tabs.
 
 We are currently prototyping and profiling different ways of interfacing WASM
 modules with async code. This section will be updated with the results and
