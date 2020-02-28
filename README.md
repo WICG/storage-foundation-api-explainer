@@ -15,20 +15,20 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Introduction](#introduction)
-- [Requirements](#requirements)
-- [Interface and Examples](#interface-and-examples)
-  - [Filesystem Calls](#filesystem-calls)
-  - [File Handles](#file-handles)
-  - [Examples](#examples)
-    - [Reads and writes](#reads-and-writes)
-    - [List files by prefix](#list-files-by-prefix)
-    - [Rename and unlink](#rename-and-unlink)
-    - [Temporary files](#temporary-files)
-- [Design Decisions](#design-decisions)
-  - [Sync vs Async](#sync-vs-async)
-- [Prototypes](#prototypes)
-- [Security Considerations](#security-considerations)
+-   [Introduction](#introduction)
+-   [Requirements](#requirements)
+-   [Interface and Examples](#interface-and-examples)
+    -   [Filesystem Calls](#filesystem-calls)
+    -   [File Handles](#file-handles)
+    -   [Examples](#examples)
+    -   [Reads and writes](#reads-and-writes)
+    -   [List files by prefix](#list-files-by-prefix)
+    -   [Rename and unlink](#rename-and-unlink)
+    -   [Temporary files](#temporary-files)
+-   [Design Decisions](#design-decisions)
+    -   [Sync vs Async](#sync-vs-async)
+-   [Prototypes](#prototypes)
+-   [Security Considerations](#security-considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -259,11 +259,10 @@ the execution flow.
 
 WebAssembly execution is synchronous but technologies like Emscripten's
 [Asyncify](https://emscripten.org/docs/porting/asyncify.html) allow modules to
-call asynchronous functions. This comes at a cost though, a 50% increase to code
-size and execution time in the usual case and up to a 5x increase in extreme
-cases like SQLite
-([source](https://kripken.github.io/blog/wasm/2019/07/16/asyncify.html)).
-Existing workarounds (like having to call
+call asynchronous functions. This comes at a
+[cost](https://kripken.github.io/blog/wasm/2019/07/16/asyncify.html) though, a
+50% increase to code size and execution time in the usual case and up to a 5x
+increase in extreme cases like SQLite. Existing workarounds (like having to call
 [FS.syncfs](https://emscripten.org/docs/api_reference/Filesystem-API.html#FS.syncfs)
 from an asynchronous context) lead to weak persistence guarantees and to data
 inconsistencies between tabs.
