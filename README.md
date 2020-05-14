@@ -284,7 +284,8 @@ _TODO: Link benchmark results_
 In order to discover the functional requirements and validate this API, we
 decided to port [SQLite](https://www.sqlite.org/index.html) and
 [LevelDB](https://github.com/google/leveldb) to the web. They were chosen since
-they are the backends of two existing web APIs, and
+they are the backends of two existing web APIs, and provide some of the core
+functionality we would like to support.
 
 In order to run the databases as WebAssembly modules, we decided to compile them
 with [Emscripten](https://emscripten.org/). This led to us adding a new
