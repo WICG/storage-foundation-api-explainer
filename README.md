@@ -249,7 +249,7 @@ feedback.
 
 A prototype of NativeIO is available in Chrome Canary. To enable it, launch
 Chrome with the `-enable-blink-features=NativeIO `flag or enable “Experimental
-Web Platform feature” in [chrome://flags](chrome://flags).
+Web Platform feature” in ["chrome://flags"](chrome://flags).
 
 To make it easier to try the API, we’ve developed an [Emscripten
 Filesystem](https://github.com/fivedots/nativeio-emscripten-fs) and a
