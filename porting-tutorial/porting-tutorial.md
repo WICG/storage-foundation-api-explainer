@@ -10,22 +10,22 @@ that uses NativeIO as its storage backend.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 
-- [What is NativeIO? {#what-is-nativeio}](#what-is-nativeio-what-is-nativeio)
-- [Getting our dependencies {#getting-our-dependencies}](#getting-our-dependencies-getting-our-dependencies)
-  - [Chrome {#chrome}](#chrome-chrome)
-  - [Emscripten {#emscripten}](#emscripten-emscripten)
+- [What is NativeIO?](#what-is-nativeio-what-is-nativeio)
+- [Getting our dependencies](#getting-our-dependencies-getting-our-dependencies)
+  - [Chrome](#chrome-chrome)
+  - [Emscripten](#emscripten-emscripten)
   - [NativeIO Emscripten filesystem](#nativeio-emscripten-filesystem)
   - [Test application](#test-application)
-- [Putting everything together {#putting-everything-together}](#putting-everything-together-putting-everything-together)
-- [Running it {#running-it}](#running-it-running-it)
-- [Further reading and future changes {#further-reading-and-future-changes}](#further-reading-and-future-changes-further-reading-and-future-changes)
-  - [Why do we need a web worker? {#why-do-we-need-a-web-worker}](#why-do-we-need-a-web-worker-why-do-we-need-a-web-worker)
-  - [Directly calling NativeIO from the main and worker threads {#directly-calling-nativeio-from-the-main-and-worker-threads}](#directly-calling-nativeio-from-the-main-and-worker-threads-directly-calling-nativeio-from-the-main-and-worker-threads)
-  - [Expected changes {#expected-changes}](#expected-changes-expected-changes)
+- [Putting everything together](#putting-everything-together-putting-everything-together)
+- [Running it](#running-it-running-it)
+- [Further reading and future changes](#further-reading-and-future-changes-further-reading-and-future-changes)
+  - [Why do we need a web worker?](#why-do-we-need-a-web-worker-why-do-we-need-a-web-worker)
+  - [Directly calling NativeIO from the main and worker threads](#directly-calling-nativeio-from-the-main-and-worker-threads-directly-calling-nativeio-from-the-main-and-worker-threads)
+  - [Expected changes](#expected-changes-expected-changes)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## What is NativeIO? {#what-is-nativeio}
+## What is NativeIO?
 
 First things first: NativeIO is a new storage API for the web. With its generic
 interface and fast implementation, it’s designed to help developers that need a
@@ -33,15 +33,15 @@ low-level API for their performance-sensitive applications. A sizable part of
 these applications rely on Wasm for efficient computation and access to existing
 codebases, and so it’s important that NativeIO integrates well into that
 platform. For more details and links to our discussion forum/issue tracker,
-check out our [explainer](https://github.com/fivedots/nativeio-explainer). We
+check out our [explainer](../README.md). We
 would love to hear your feedback, so please reach out if you have any comments
 during/after the tutorial.
 
 
-## Getting our dependencies {#getting-our-dependencies}
+## Getting our dependencies
 
 
-### Chrome {#chrome}
+### Chrome
 
 Chrome Canary already contains a full implementation of NativeIO, so be sure to
 [download it ](https://www.google.com/chrome/canary/)and enable it by going to
@@ -49,7 +49,7 @@ Chrome Canary already contains a full implementation of NativeIO, so be sure to
 
 ![Chrome flag to enable experimental features](images/1-experimental-flag.png)
 
-### Emscripten {#emscripten}
+### Emscripten
 
 Emscripten provides the compiler and runtime needed to port our application. You
 can download and install it by following their
@@ -83,7 +83,7 @@ In the next sections we will compile it with Emscripten and locally serve it.
 Then we will be able to try our hand at generating Fibonacci numbers by visiting
 the site with Chrome. 
 
-## Putting everything together {#putting-everything-together}
+## Putting everything together
 
 Now that we have all of the pieces, let’s build our application. The end result
 will end up like this:
@@ -147,7 +147,7 @@ detail:
     SharedArrayBuffer-backed memory. More details on why this is necessary
     below.
 
-## Running it {#running-it}
+## Running it
 
 To run the application we just built, just run this command:
 
@@ -163,9 +163,9 @@ http://localhost:6931. That’s it!
 NOTE: It’s worth mentioning that NativeIO can only be accessed from secure
 origins, so your future websites would need to be served through HTTPS.
 
-## Further reading and future changes {#further-reading-and-future-changes}
+## Further reading and future changes
 
-### Why do we need a web worker? {#why-do-we-need-a-web-worker}
+### Why do we need a web worker?
 
 NativeIO offers both synchronous and asynchronous versions of its methods,
 although the sync ones are only available within a worker thread. Currently
@@ -177,7 +177,7 @@ lift this restriction soon! If you need to access NativeIO from the main thread,
 you can use the [Async
 Wrapper](https://github.com/fivedots/nativeio-async-wrapper) mentioned below.
 
-### Directly calling NativeIO from the main and worker threads {#directly-calling-nativeio-from-the-main-and-worker-threads}
+### Directly calling NativeIO from the main and worker threads
 
 In this guide we used Emscripten’s runtime and interfaces to interact with
 NativeIO. If you would like to know how to directly access our API, check out
@@ -187,7 +187,7 @@ and examples there will show you how you can call the Asynchronous methods from
 NativeIO from both web workers and the main thread.
 
 
-### Expected changes {#expected-changes}
+### Expected changes
 
 As we develop, grow and explore the limits of NativeIO, it’s likely some of the
 steps mentioned in this guide will change. To mention a few:
