@@ -1,0 +1,33 @@
+<html>
+<head>
+  <title> Fibonacci on NativeIO </title>
+  <script>
+    var worker = new Worker('fib.js');
+    worker.onerror = function(err) { console.log(err); };
+    worker.onmessage = function(event) {
+      switch(event.data.command) {
+        case 'getData':
+          document.getElementById('fibonacci-result').textContent = 'Contents of the Fibonacci file: ' + event.data.result;
+        break;
+      }
+    };
+  </script>
+</head>
+<body>
+  <h1> Fibonacci on NativeIO </h1>
+  <p> This example website uses a Wasm module to generate the Fibonacci
+  sequence and store it in a NativeIO file. Thanks to NativeIO's buffered
+  direct access, it only ever loads the last two numbers of the file into
+  memory. Our Emscripten filesystem allows us to use higher level functionality,
+  like seeking and supporting full pathnames with directories.</p>
+  <p>This example is part of a tutorial (TODO link). To learn more about
+  NativeIO read our
+  <a href="https://github.com/fivedots/nativeio-explainer">explainer!</a></p>
+  <p> Use the buttons below to execute a step of the sequence, update
+  the shown contents or reset the stored sequence.</p>
+  <div id="fibonacci-result"></div>
+  <hr>
+  <button onClick="worker.postMessage({command: 'step'})"> Do one Fibonacci step! </button>
+  <button onClick="worker.postMessage({command: 'getData'})"> Show me the contents of the file! </button>
+  <button onClick="worker.postMessage({command: 'reset'})"> Reset the file! </button>
+</html>
