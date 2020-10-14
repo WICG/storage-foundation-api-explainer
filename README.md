@@ -253,8 +253,8 @@ Web Platform feature” in ["chrome://flags"](chrome://flags).
 
 To make it easier to try the API, we’ve developed an [Emscripten
 Filesystem](https://github.com/fivedots/nativeio-emscripten-fs) and a
-[tutorial](porting-tutorial/porting-tutorial.md) with an example use-case.  We
-also provided a
+[tutorial](https://github.com/fivedots/nativeio-porting-tutorial) with an
+example use-case.  We also provided a
 [wrapper](https://github.com/fivedots/nativeio-async-wrapper)
 that allows directly calling NativeIO from C++ code.
 
