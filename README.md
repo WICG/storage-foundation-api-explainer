@@ -1,99 +1,91 @@
-# NativeIO API
+# NativeIO Explainer
 
-## Authors:
+## Authors
 
-*   Emanuel Krivoy (krivoy@google.com)
-*   Jose Lopes (jabolopes@google.com)
+*   Emanuel Krivoy (fivedots@chromium.org)
+*   Richard Stotz (rstz@chromium.org)
+*   Jose Lopes (jabolopes@google.com, emeritus)
 
 ## Participate
 
-*   Issue Tracker: https://crbug.com/914488
-*   Discussion forum: https://github.com/fivedots/nativeio-explainer
+*   [Issue Tracker](https://crbug.com/914488)
+*   [Discussion forum](https://github.com/fivedots/nativeio-explainer/issues)
 
-## Table of Contents
+## What is this API about?
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+The web platform increasingly offers developers the tools they need to build
+fined-tuned high-performance applications for the web. Most notably, WebAssembly
+has opened the doors to fast and powerful web applications, while technologies
+like Emscripten now allow developers to reuse tried and tested code on the web.
+In order to truly leverage this potential, developers must be given the same
+power and flexibility when it comes to storage. Other storage APIs often work
+great for the use-cases they were explicitly built for, but covering new needs
+through them often comes at a loss of performance and usability. 
 
--   [Introduction](#introduction)
--   [Requirements](#requirements)
--   [Interface and Examples](#interface-and-examples)
-    -   [Filesystem Calls](#filesystem-calls)
-    -   [File Handles](#file-handles)
-    -   [Examples](#examples)
-    -   [Reads and writes](#reads-and-writes)
-    -   [List files by prefix](#list-files-by-prefix)
-    -   [Rename and unlink](#rename-and-unlink)
-    -   [Temporary files](#temporary-files)
--   [Design Decisions](#design-decisions)
-    -   [Sync vs Async](#sync-vs-async)
--   [Prototypes](#prototypes)
--   [Security Considerations](#security-considerations)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-## Introduction
-
-The web platform offers a number of APIs that give developers the ability to
-store and retrieve data. These APIs are generally high-level and opinionated,
-providing an interface that's well-tuned for certain use cases, but ill-suited
-to others. For example, WebSQL implements a relational database; as long as your
-processing needs are met by the exact SQL dialect supported in SQLite 3.6.19
-(released almost exactly a decade ago), it might be right for you! If, on the
-other hand, you prefer a different dialect, or simply want to represent your
-data in a way that doesn't fit the existing storage mechanisms, you're a bit out
-of luck.
-
-Native platforms have taken a different approach to storage APIs, aiming to give
-the developer community flexibility by providing generic, simple, and performant
-primitives upon which developers can build higher-level components. Applications
-can take advantage of the best tool for their needs, finding the right balance
-between API, performance, and reliability. It would be ideal if the web could
-support the same freedom of choice.
-
-WebAssembly seems like a path towards that vision. Developers can bring their
-own storage mechanism, compiling any native tool into a WASM module, and binding
-it to the web APIs discussed above. This works today, but the result is not
-quite ready for production. For example, the
-[IDBFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)
-backend provided by Emscripten has consistency issues between tabs, and slow
-performance, both due in part to the mismatch between the requirements of WASM
-and the design objectives of the backing store.
-
-NativeIO is a new low-level storage API that resembles a very basic filesystem.
-It is extremely performant, showing great improvement in prototype benchmarks.
+This is where NativeIO comes in. NativeIO is a new fast and unopinionated
+storage API that  unlocks new and much-requested use-cases for the web, such as
+implementing performant databases and gracefully managing large temporary files.
 With this new interface developers will be able to “Bring their Own Storage” to
-the web, reducing the feature gap between web and native.
+the web, reducing the feature gap between web and native. It will also
+complement the nascent ecosystem of performant-focused Wasm applications with a
+storage backend that matches its needs.
 
-A few examples of what would be possible after NativeIO exists:
+NativeIO is designed to resemble a very basic filesystem, aiming to give
+developers flexibility  by providing generic, simple, and performant primitives
+upon which they can build higher-level components. Applications can take
+advantage of the best tool for their needs, finding the right balance between
+usability, performance, and reliability.
+
+A few examples of what could be done with NativeIO:
 
 *   Allow tried and true technologies to be performantly used as part of web
-    applications e.g. using a port of your favorite database within a website
-*   Distribute a WASM module for WebSQL, allowing developers to us it across
+    applications e.g. using a port of your favorite storage library
+within a website
+*   Distribute a Wasm module for WebSQL, allowing developers to us it across
     browsers and opening the door to removing the unsupported API from Chrome
+*   Allow a music production website to operate on large amounts of media, by
+    relying on NativeIO’s performance and direct buffered access to offload
+sound segments to disk instead of holding them in memory
 *   Provide a persistent [Emscripten](https://emscripten.org/) filesystem that
     outperforms
-    [IDBFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)
-    and has a simpler implementation
+[IDBFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)
+and has a simpler implementation
 
-## Requirements
+Note: We are actively considering alternative names for NativeIO, expect it to
+change in the future. We’ll keep the current name as a placeholder until then.
 
-Our main objective is to close the feature gap that exists between web and
-native by giving developers a broader storage choice. NativeIO provides the
-storage primitives needed to effectively run higher level storage in the client
-side.
+### Why does the web need another storage API?
 
-NativeIO must be generic and performant enough for developers to implement or
-port their preferred storage component and use it as part of their web
-application. It should also be able to function as a backend for existing web
-storage APIs. Since WebAssembly is the key technology needed to port native
-technologies, NativeIO must be able to performantly interface with WASM modules.
+The web platform offers a number of storage options for developers, each of them
+built with specific use-cases in mind. Some of these options clearly do not
+overlap with this proposal as they only allow very small amounts of data to be
+stored (Cookies, [Web Storage
+API](https://html.spec.whatwg.org/multipage/webstorage.html#webstorage)) or are
+already deprecated for various reasons ([File and Directory Entries
+API](https://developer.mozilla.org/en-US/docs/Web/API/File_and_Directory_Entries_API/Firefox_support),
+[WebSQL](https://www.w3.org/TR/webdatabase/)). The new [Native File System
+API](https://wicg.github.io/native-file-system/) has a similar API surface, but
+its main intended usage is to interface with the client’s filesystem and provide
+access to data that may be outside of the origin’s or even the browser’s
+ownership. This different focus comes with stricter security considerations and
+higher performance costs.
 
-## Interface and Examples
+[IndexedDB](https://w3c.github.io/IndexedDB/) can be used as a backend for some
+of the NativeIO’s use-cases. For example, Emscripten includes
+[IDBFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs),
+an IndexedDB-based persistent file system. However, since IndexedDB is
+fundamentally a key-value store, it comes with significant performance
+limitations. Furthermore, directly accessing sub-sections of a file is even more
+difficult and slower under IndexedDB.  Finally, the [Cache
+API](https://developer.mozilla.org/en-US/docs/Web/API/Cache) is widely
+supported, and is tuned for storing large-sized data such as web application
+resources, but the values are immutable.
 
-> Note: We are currently exploring the tradeoffs between providing a synchronous
-> vs. asynchronous API. The following interfaces are designed to be synchronous
-> as a temporary measure, they will be updated once a decision has been reached.
+## Interface and examples
+
+Note: We are currently exploring the tradeoffs between providing a synchronous
+vs. asynchronous API. The following interfaces are designed to be asynchronous
+as a temporary measure, they will be updated once a decision has been reached.
 
 There are two main parts to the API:
 
@@ -102,156 +94,131 @@ There are two main parts to the API:
     and file paths
 
 The following are our draft proposals for the interface, written in Web IDL.
-Since this is a synchronous API, it will only be accessible to web and shared
-workers. That way we are not adding blocking functionality to the main thread.
 
-### Filesystem Calls
+### Filesystem calls
 
 All filesystem calls are accessible through a global NativeIO instance.
 
-IMPORTANT: At the moment, this WebIDL is written in synchronous form but we are
-still exploring the possibility of having WebAssembly call an async IO API.
 
 ```webidl
-// IMPORTANT: filenames are restricted to lower-case alphanumeric and underscore
-// (a-z, 0-9, _). This restricted character set should work on most filesystems
-// across Linux, Windows, and Mac platforms, because some systems, e.g., treat
-// “.” with a special  meaning, or treat lower-case and upper-case as the same
-// file, etc.
-interface NativeIO {
-    // Opens the file with the given name.
-    [RaisesException] FileHandle openFile(DOMString name);
+// IMPORTANT: filenames are restricted to lower-case alphanumeric and
+// underscore (a-z, 0-9, _).
+interface NativeIOManager {
+  // Opens the file with the given name if it exists and otherwise creates a
+  // new file.
+  [RaisesException] Promise<NativeIOFile> open(DOMString name);
 
-    // Create the file with the given name if it doesn't exist.
-    [RaisesException] void createFile(DOMString name);
+  // Removes the file with the given name.
+  [RaisesException] Promise<void> delete(DOMString name);
 
-    // Renames the file from old name to new name atomically. Open file handles
-    // remain unaffected by this.
-    [RaisesException] void rename(DOMString oldName, DOMString newName);
+  // Returns all existing file names.
+  [RaisesException] Promise<sequence<DOMString>> getAll();
 
-    // Unlinks the file from the filesystem. Open file handles remain unaffected by this.
-    [RaisesException] void unlink(DOMString name);
-
-    // Returns all existing file names (in no specific order).
-    [RaisesException] sequence<DOMString> List();
+  // Renames the file from old name to new name atomically.
+  [RaisesException] Promise<void> rename(DOMString old_name, 
+                                         DOMString new_name);
 };
 ```
 
 For this API we opted to have a minimal set of functions. This reduces the
-surface area of the browser and (hopefully) simplifies the standardization
-process. More advanced filesystem-like functionality can be implemented by
-client libraries, as we've done with our prototype Emscripten filesystem.
+surface area of the browser and simplifies the standardization process. More
+advanced filesystem-like functionality can be implemented by client libraries,
+as we've done with our prototype Emscripten filesystem.
 
-### File Handles
+### File handles
 
 The following functions are accessible after opening a FileHandle object.
 
+
 ```webidl
-[
-    Constructor
-] dictionary FileAttributes {
-    // Size of the file in bytes.
-    attribute unsigned long long size;
-};
+interface NativeIOFile {
+  Promise<void> close();
 
-interface FileHandle {
-    // Returns the file attributes.
-    [RaisesException] FileAttributes getAttributes();
+  // Synchronizes (i.e., flushes) a file's in-core state with the storage
+  // device.
+  // Note: flush() might be slow and we are exploring whether offering a
+  // faster, less reliable variant would be useful.
+  [RaisesException] Promise<void> flush();
 
-    // Sets the file attributes, such as file size (resize or truncation).
-    // The API does not guarantee that different attributes will be updated atomically because
-    // of limitations in the underlying file systems of the different platforms.
-    [RaisesException] void setAttributes(FileAttributes attributes);
+  // Returns the length of the file in bytes.
+  [RaisesException] Promise<unsigned long long> getLength();
 
-    // Reads the contents of the file at the given offset into the given buffer. The number of
-    // bytes read is the size of the buffer. Returns the number of bytes read. This may return
-    // less bytes than those requested if the read range spans over the end of the file.
-    // Returns 0 if the read range is beyond the end of the file. An exception is raised if there
-    // is a read failure.
-    [RaisesException] unsigned long read(BufferSource buffer, unsigned long long offset);
+  // Sets the length of the file. If the new length is smaller than the current
+  // one, bytes are removed starting  from the end of the file.
+  // Otherwise the file is extended with zero-valued bytes.
+  [RaisesException] Promise<void> setLength(unsigned long long length);
 
-    // Writes the given buffer at the given file offset. Returns the number of bytes written.
-    // If the write range spans over the end of the file, the file will be resized accordingly.
-    // Returns the number of bytes written to the file. The number of bytes written can be
-    // less than those requested, for example, because the disk is full. The number of bytes
-    // written can never be 0. An exception is raised if there is a write failure.
-    [RaisesException] unsigned long write(BufferSource buffer, unsigned long long offset);
+  // Reads the contents of the file at the given offset into the given buffer.
+  // Returns the number of bytes that were successfully read. This may be less
+  // than the buffer size, if errors occur or if the read range spans
+  // beyond the end of the file. Returns zero if the read range is beyond the
+  // end of the file.
+  [RaisesException] Promise<unsigned long long> read(
+                      [AllowShared]  ArrayBufferView buffer,
+                      unsigned long long file_offset);
 
-    // Synchronizes (i.e., flushes) a file’s in-core state with the storage device.
-    //
-    // Important: write only guarantees that the data has been written to the file but it does
-    // not guarantee that the data has been persisted to the underlying storage. To ensure
-    // that no data loss occurs on system crash, sync must be called and it must return
-    // successfully without raising an exception.
-    [RaisesException] void sync();
-
-    // Flushes the files and closes the file handle.
-    //
-    // This always closes the file handle even if an error is thrown. This must be called at least
-    // once to avoid leaking resources. Calling this when the file is already closed is a no-op.
-    [RaisesException] void close();
+  // Writes the contents of the given buffer into the file at the given offset.
+  // Returns the number of bytes successfully written. This may be less than
+  // the buffer size if an error occurs. The file will be extended if the write
+  // range spans beyond its length.
+  //
+  // Important: write only guarantees that the data has been written to the
+  // file but it does not guarantee that the data has been persisted to the
+  // underlying storage. To ensure that no data loss occurs on system crash,
+  // flush must be called and it must successfully return.
+  [RaisesException] Promise<unsigned long long> write(
+                      [AllowShared]  ArrayBufferView buffer,
+                      unsigned long long file_offset);
 };
 ```
 
-### Examples
+Note: read and write currently take a SharedArrayBuffers as a parameter. This is
+done to highlight the fact that it might be possible to observe changes to the
+buffer as the browser processes it. The implications of this and the possibility
+of using simpler ArrayBuffers are being discussed.
 
-#### Reads and writes
+##### **Reads and writes**
 
 Open a file, write to it, read from it, and close it to guarantee integrity of
 the file’s contents.
 
 ```javascript
-var handle = io.openFile("hello-world") // opens a file (creating it if needed)
+var file = await nativeIO.open("test_file");  // opens a file (creating it if
+                                              // needed)
 try {
-  var writeBuffer = new Int8Array([3, 1, 4])
-  handle.write(writeBuffer, 0) // returns 3, the number of bytes written
+  var writeSharedArrayBuffer = new SharedArrayBuffer(3);
+  var writeBuffer = new Uint8Array(writeSharedArrayBuffer);
+  writeBuffer.set([64, 65, 66]);
+  await file.write(writeBuffer, 0);  // returns 3, the number of bytes written
 
-  var readBuffer = new Int8Array(3) // creates a new array of length 3
-  handle.read(readBuffer, 0, 3) // returns 3, the number of bytes read
+  var readSharedArrayBuffer = new SharedArrayBuffer(3);
+  var readBuffer = new Uint8Array(readSharedArrayBuffer);
+  await file.read(readBuffer, 1);  // Reads at offset 1, returns 2, the number 
+                                   // of bytes read
 
-  console.log(readBuffer) // Int8Array(3) [1, 2, 3]
+  console.log(readBuffer);  // Uint8Array(3) [65, 66, 0]
 } finally {
-  handle.close()
+ file.close();
 }
 ```
 
-#### List files by prefix
+##### **List files**
 
-Create a few files and list them.
-
-```javascript
-io.createFile("sunrise")
-io.createFile("noon")
-io.createFile("sunset")
-io.list()  // ["sunset", "sunrise", "noon"]
-```
-
-#### Rename and unlink
-
-Create a file, rename it and unlink it.
+Create/delete a few files and list them.
 
 ```javascript
-io.createFile("file")
-io.rename("file", "newfile")
-io.unlink("newfile")
-```
+await nativeIO.open("sunrise");
+await nativeIO.open("noon");
+await nativeIO.open("sunset");
+await nativeIO.getAll();  // ["sunset", "sunrise", "noon"]
 
-#### Temporary files
-
-Create a temporary file by opening a file and immediately unlinking. The file
-remains valid until the last handle to it is closed. When that happens, the file
-is deleted.
-
-```javascript
-var handle = io.openFile("hello-world")
-io.unlink("hello-world")  // Unlink the filename, but the file handle remains valid.
-...
-handle.close()  // The last handle to the file is closed, so the file is deleted.
+await nativeIO.delete("noon");
+await nativeIO.getAll();  // ["sunrise", "noon"]
 ```
 
 ## Design Decisions
 
-### Sync vs Async
+### Sync vs. Async
 
 The decision to structure NativeIO as a synchronous or asynchronous API will
 come from the trade-off between performance and usability vs. risks of blocking
@@ -267,44 +234,40 @@ increase in extreme cases like SQLite. Existing workarounds (like having to call
 from an asynchronous context) lead to weak persistence guarantees and to data
 inconsistencies between tabs.
 
-We are currently prototyping and profiling different ways of interfacing WASM
-modules with async code. This section will be updated with the results and
-eventual design decision.
+We are currently prototyping and profiling different ways of interfacing Wasm
+modules with async code. We are also closely watching proposals for allowing
+asynchronous functions in Wasm. This section will be updated with the results
+and eventual design decision.
 
-## Prototypes
+### Concurrent I/O
 
-See the
-[NativeIO](https://github.com/jabolopes/emfs/blob/master/library_nativeiofs.js)
-FS for a complete Emscripten filesystem that uses the NativeIO API.
+The current prototype of NativeIO allows any file to be opened only once. In
+particular, this means that files can not be shared between tabs. Allowing a
+file to be opened multiple times requires significant overhead to prevent
+concurrent, unsafe writes to the same file. Our current approach is therefore
+quite safe yet restrictive. We may revisit this decision based on developer
+feedback.
 
-_TODO: Link demos and code once they are easily shareable_
+## Trying It Out
 
-_TODO: Link benchmark results_
+A prototype of NativeIO is available in Chrome Canary. To enable it, launch
+Chrome with the `-enable-blink-features=NativeIO `flag or enable “Experimental
+Web Platform feature” in ["chrome://flags"](chrome://flags).
 
-In order to discover the functional requirements and validate this API, we
-decided to port [SQLite](https://www.sqlite.org/index.html) and
-[LevelDB](https://github.com/google/leveldb) to the web. They were chosen since
-they are the backends of two existing web APIs, and provide some of the core
-functionality we would like to support.
-
-In order to run the databases as WebAssembly modules, we decided to compile them
-with [Emscripten](https://emscripten.org/). This led to us adding a new
-Emscripten filesystem that uses NativeIO to emulate more complex functionality.
-Both candidate libraries were successfully run and showed significant
-performance improvements when compared to the same libraries running on top of
-the
-[Chrome filesystem](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestFileSystem).
+To make it easier to try the API, we’ve developed an [Emscripten
+Filesystem](https://github.com/fivedots/nativeio-emscripten-fs) and a
+[tutorial](https://github.com/fivedots/nativeio-porting-tutorial) with an
+example use-case.  We also provided a
+[wrapper](https://github.com/fivedots/nativeio-async-wrapper)
+that allows directly calling NativeIO from C++ code.
 
 ## Security Considerations
 
-Modern storage Web APIs, such as WebSQL and IndexedDB, are origin-bound. This
-means that databases created through these APIs are only accessible to the
-creating origin. It also means that they won’t be accessible from opaque origins
-(including file://). In order to maintain the same separation, the NativeIO API
-should also be origin-bound, i.e., the files created by an origin will be
-sandboxed to that single origin (which, similarly to other APIs, may include
-also extension origins).
+Following the same pattern as other modern storage web APIs, access to NativeIO
+is origin-bound, meaning that an origin may only access self-created data. It is
+also limited to secure contexts e.g. NativeIO is exposed to HTTPS- but not
+HTTP-served websites.
 
-The API will have similar security policies to the one used in modern web
-storage APIs. Access to files will be isolated per origin. Quota checks will be
-used to prevent misuse of user resources.
+Storage quota will be used to distribute access to disk space and to prevent
+abuse. Like other storage APIs, users must have the option of clearing the space
+taken by NativeIO through their user agents.gg
