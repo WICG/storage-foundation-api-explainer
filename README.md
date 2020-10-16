@@ -39,7 +39,7 @@ usability, performance, and reliability.
 A few examples of what could be done with NativeIO:
 
 *   Allow tried and true technologies to be performantly used as part of web
-    applications e.g. using a port of your favorite storage librarydatabase
+    applications e.g. using a port of your favorite storage library
 within a website
 *   Distribute a Wasm module for WebSQL, allowing developers to us it across
     browsers and opening the door to removing the unsupported API from Chrome
@@ -204,13 +204,16 @@ try {
 
 ##### **List files**
 
-Create a few files and list them.
+Create/delete a few files and list them.
 
 ```javascript
 await nativeIO.open("sunrise");
 await nativeIO.open("noon");
 await nativeIO.open("sunset");
 await nativeIO.getAll();  // ["sunset", "sunrise", "noon"]
+
+await nativeIO.delete("noon");
+await nativeIO.getAll();  // ["sunrise", "noon"]
 ```
 
 ## Design Decisions
