@@ -271,3 +271,7 @@ HTTP-served websites.
 Storage quota will be used to distribute access to disk space and to prevent
 abuse. Like other storage APIs, users must have the option of clearing the space
 taken by NativeIO through their user agents.gg
+
+While no configuration information of the host is exposed through our interface,
+care must be taken during implementation, such as not to expose
+operating-system-specific behavior through the way file operations are executed.
