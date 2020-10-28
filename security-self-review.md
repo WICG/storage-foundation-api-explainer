@@ -24,7 +24,9 @@ This specification does not deal with sensitive information.
 Yes, this specification introduces a new persistent storage mechanism where
 state may be kept. The risk of tracking must be mitigated by following similar
 strategies used in other storage APIs e.g. user agents should allow users to
-wipe stored data, an origin may only access files that are owned by it, etc.
+wipe stored data, an origin may only access files that are owned by it, access
+in third-party contexts should be governed by the same policy as other storage
+types, etc.
 
 ## 2.6. What information from the underlying platform, e.g. configuration data, is exposed by this specification to an origin?
 
@@ -44,26 +46,32 @@ is similar to other storage APIs
 ## 2.9. Does this specification enable new script execution/loading mechanisms?
 
 This specification does not enable new script execution/loading mechanisms.
+
 ## 2.10. Does this specification allow an origin to access other devices?
 
 This specification does not allow access to other devices.
+
 ## 2.11. Does this specification allow an origin some measure of control over a user agent’s native UI?
 
 This specification does not allow any control of a user agent’s UI.
+
 ## 2.12. What temporary identifiers might this specification create or expose to the web?
 
 This specification does not expose any temporary identifiers.
+
 ## 2.13. How does this specification distinguish between behavior in first-party and third-party contexts?
 
-This specification does not offer different behaviors depending on the context.
-It’s worth noting that the data accessible to each context will depend on the
-origin, and therefore a call from a third-party context would not be able to
-access first-party content.
+This specification follows the same user-agent policies that apply to
+other storage types. It’s worth noting that the data accessible to each context
+will depend on the origin, and therefore a call from a third-party context would
+not be able to access first-party content.
 
 ## 2.14. How does this specification work in the context of a user agent’s Private Browsing or "incognito" mode?
 
 This specification will work mostly the same as in “regular” mode, except that
 stored information will not be persisted after a private session is finished.
+This  should be indistinguishable from other storage APIs.
+
 ## 2.15. Does this specification have a "Security Considerations" and "Privacy Considerations" section?
 
 Yes.
