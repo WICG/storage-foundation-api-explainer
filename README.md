@@ -63,7 +63,7 @@ stored (Cookies, [Web Storage
 API](https://html.spec.whatwg.org/multipage/webstorage.html#webstorage)) or are
 already deprecated for various reasons ([File and Directory Entries
 API](https://developer.mozilla.org/en-US/docs/Web/API/File_and_Directory_Entries_API/Firefox_support),
-[WebSQL](https://www.w3.org/TR/webdatabase/)). The new [Native File System
+[WebSQL](https://www.w3.org/TR/webdatabase/)). The [File System Access
 API](https://wicg.github.io/native-file-system/) has a similar API surface, but
 its main intended usage is to interface with the client’s filesystem and provide
 access to data that may be outside of the origin’s or even the browser’s
