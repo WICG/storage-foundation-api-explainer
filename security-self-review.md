@@ -1,4 +1,4 @@
-# NativeIO Security Self-Review
+# Storage Foundation API Security Self-Review
 
 https://www.w3.org/TR/2020/NOTE-security-privacy-questionnaire-20200508/
 
