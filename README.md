@@ -1,4 +1,4 @@
-# NativeIO Explainer
+# Storage Foundation API Explainer
 
 ## Authors
 
@@ -9,7 +9,7 @@
 ## Participate
 
 *   [Issue Tracker](https://crbug.com/914488)
-*   [Discussion forum](https://github.com/fivedots/nativeio-explainer/issues)
+*   [Discussion forum](https://github.com/fivedots/storage-foundation-api-explainer/issues)
 
 ## What is this API about?
 
@@ -20,23 +20,23 @@ like Emscripten now allow developers to reuse tried and tested code on the web.
 In order to truly leverage this potential, developers must be given the same
 power and flexibility when it comes to storage. Other storage APIs often work
 great for the use-cases they were explicitly built for, but covering new needs
-through them often comes at a loss of performance and usability. 
+through them often comes at a loss of performance and usability.
 
-This is where NativeIO comes in. NativeIO is a new fast and unopinionated
-storage API that  unlocks new and much-requested use-cases for the web, such as
-implementing performant databases and gracefully managing large temporary files.
-With this new interface developers will be able to “Bring their Own Storage” to
-the web, reducing the feature gap between web and native. It will also
-complement the nascent ecosystem of performant-focused Wasm applications with a
-storage backend that matches its needs.
+This is where Storage Foundation API comes in. Storage Foundation API is a new
+fast and unopinionated storage API that  unlocks new and much-requested
+use-cases for the web, such as implementing performant databases and gracefully
+managing large temporary files.  With this new interface developers will be able
+to “Bring their Own Storage” to the web, reducing the feature gap between web
+and native. It will also complement the nascent ecosystem of performant-focused
+Wasm applications with a storage backend that matches its needs.
 
-NativeIO is designed to resemble a very basic filesystem, aiming to give
-developers flexibility  by providing generic, simple, and performant primitives
-upon which they can build higher-level components. Applications can take
-advantage of the best tool for their needs, finding the right balance between
-usability, performance, and reliability.
+Storage Foundation API is designed to resemble a very basic filesystem, aiming
+to give developers flexibility  by providing generic, simple, and performant
+primitives upon which they can build higher-level components. Applications can
+take advantage of the best tool for their needs, finding the right balance
+between usability, performance, and reliability.
 
-A few examples of what could be done with NativeIO:
+A few examples of what could be done with Storage Foundation API:
 
 *   Allow tried and true technologies to be performantly used as part of web
     applications e.g. using a port of your favorite storage library
@@ -44,15 +44,12 @@ within a website
 *   Distribute a Wasm module for WebSQL, allowing developers to us it across
     browsers and opening the door to removing the unsupported API from Chrome
 *   Allow a music production website to operate on large amounts of media, by
-    relying on NativeIO’s performance and direct buffered access to offload
-sound segments to disk instead of holding them in memory
+    relying on Storage Foundation API’s performance and direct buffered access
+    to offload sound segments to disk instead of holding them in memory
 *   Provide a persistent [Emscripten](https://emscripten.org/) filesystem that
     outperforms
 [IDBFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)
 and has a simpler implementation
-
-Note: We are actively considering alternative names for NativeIO, expect it to
-change in the future. We’ll keep the current name as a placeholder until then.
 
 ### Why does the web need another storage API?
 
@@ -71,7 +68,7 @@ ownership. This different focus comes with stricter security considerations and
 higher performance costs.
 
 [IndexedDB](https://w3c.github.io/IndexedDB/) can be used as a backend for some
-of the NativeIO’s use-cases. For example, Emscripten includes
+of the Storage Foundation API’s use-cases. For example, Emscripten includes
 [IDBFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs),
 an IndexedDB-based persistent file system. However, since IndexedDB is
 fundamentally a key-value store, it comes with significant performance
@@ -94,6 +91,10 @@ There are two main parts to the API:
     and file paths
 
 The following are our draft proposals for the interface, written in Web IDL.
+
+Note: Storage Foundation API used to be called NativeIO, and the Javascript
+object still has this name. We will update the explainer once the new name is
+available in Chrome.
 
 ### Filesystem calls
 
@@ -220,9 +221,9 @@ await nativeIO.getAll();  // ["sunrise", "noon"]
 
 ### Sync vs. Async
 
-The decision to structure NativeIO as a synchronous or asynchronous API will
-come from the trade-off between performance and usability vs. risks of blocking
-the execution flow.
+The decision to structure Storage Foundation API as a synchronous or
+asynchronous API will come from the trade-off between performance and usability
+vs. risks of blocking the execution flow.
 
 WebAssembly execution is synchronous but technologies like Emscripten's
 [Asyncify](https://emscripten.org/docs/porting/asyncify.html) allow modules to
@@ -241,36 +242,36 @@ and eventual design decision.
 
 ### Concurrent I/O
 
-The current prototype of NativeIO allows any file to be opened only once. In
-particular, this means that files can not be shared between tabs. Allowing a
-file to be opened multiple times requires significant overhead to prevent
-concurrent, unsafe writes to the same file. Our current approach is therefore
-quite safe yet restrictive. We may revisit this decision based on developer
-feedback.
+The current prototype of Storage Foundation API allows any file to be opened
+only once. In particular, this means that files can not be shared between tabs.
+Allowing a file to be opened multiple times requires significant overhead to
+prevent concurrent, unsafe writes to the same file. Our current approach is
+therefore quite safe yet restrictive. We may revisit this decision based on
+developer feedback.
 
 ## Trying It Out
 
-A prototype of NativeIO is available in Chrome Canary. To enable it, launch
-Chrome with the `-enable-blink-features=NativeIO `flag or enable “Experimental
-Web Platform feature” in ["chrome://flags"](chrome://flags).
+A prototype of Storage Foundation API is available in Chrome Canary. To enable
+it, launch Chrome with the `-enable-blink-features=NativeIO `flag or enable
+“Experimental Web Platform feature” in ["chrome://flags"](chrome://flags).
 
 To make it easier to try the API, we’ve developed an [Emscripten
-Filesystem](https://github.com/fivedots/nativeio-emscripten-fs) and a
-[tutorial](https://github.com/fivedots/nativeio-porting-tutorial) with an
+Filesystem](https://github.com/fivedots/storage-foundation-emscripten-fs) and a
+[tutorial](https://github.com/fivedots/storage-foundation-porting-tutorial) with an
 example use-case.  We also provided a
-[wrapper](https://github.com/fivedots/nativeio-async-wrapper)
-that allows directly calling NativeIO from C++ code.
+[wrapper](https://github.com/fivedots/storage-foundation-async-wrapper)
+that allows directly calling Storage Foundation API from C++ code.
 
 ## Security Considerations
 
-Following the same pattern as other modern storage web APIs, access to NativeIO
-is origin-bound, meaning that an origin may only access self-created data. It is
-also limited to secure contexts e.g. NativeIO is exposed to HTTPS- but not
-HTTP-served websites.
+Following the same pattern as other modern storage web APIs, access to Storage
+Foundation API is origin-bound, meaning that an origin may only access
+self-created data. It is also limited to secure contexts e.g. Storage Foundation
+API is exposed to HTTPS- but not HTTP-served websites.
 
 Storage quota will be used to distribute access to disk space and to prevent
 abuse. Like other storage APIs, users must have the option of clearing the space
-taken by NativeIO through their user agents.gg
+taken by Storage Foundation API through their user agents.
 
 While no configuration information of the host is exposed through our interface,
 care must be taken during implementation, such as not to expose
