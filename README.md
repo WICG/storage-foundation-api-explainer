@@ -51,6 +51,10 @@ within a website
 [IDBFS](https://emscripten.org/docs/api_reference/Filesystem-API.html#filesystem-api-idbfs)
 and has a simpler implementation
 
+Note: Storage Foundation API used to be called NativeIO. Some references to this
+name still remain, especially in the description of the interface and in code
+examples. They will be removed after the new name has landed on Chrome.
+
 ### Why does the web need another storage API?
 
 The web platform offers a number of storage options for developers, each of them
@@ -91,10 +95,6 @@ There are two main parts to the API:
     and file paths
 
 The following are our draft proposals for the interface, written in Web IDL.
-
-Note: Storage Foundation API used to be called NativeIO, and the Javascript
-object still has this name. We will update the explainer once the new name is
-available in Chrome.
 
 ### Filesystem calls
 
@@ -256,10 +256,10 @@ it, launch Chrome with the `-enable-blink-features=NativeIO `flag or enable
 “Experimental Web Platform feature” in ["chrome://flags"](chrome://flags).
 
 To make it easier to try the API, we’ve developed an [Emscripten
-Filesystem](https://github.com/fivedots/storage-foundation-emscripten-fs) and a
-[tutorial](https://github.com/fivedots/storage-foundation-porting-tutorial) with an
+Filesystem](https://github.com/fivedots/storage-foundation-api-emscripten-fs) and a
+[tutorial](https://github.com/fivedots/storage-foundation-api-porting-tutorial) with an
 example use-case.  We also provided a
-[wrapper](https://github.com/fivedots/storage-foundation-async-wrapper)
+[wrapper](https://github.com/fivedots/storage-foundation-api-async-wrapper)
 that allows directly calling Storage Foundation API from C++ code.
 
 ## Security Considerations
