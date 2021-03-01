@@ -98,13 +98,14 @@ The following are our draft proposals for the interface, written in Web IDL.
 
 ### Filesystem calls
 
-All filesystem calls are accessible through a global NativeIO instance.
+All filesystem calls are accessible through a global Storage Foundation
+instance.
 
 
 ```webidl
 // IMPORTANT: filenames are restricted to lower-case alphanumeric and
 // underscore (a-z, 0-9, _).
-interface NativeIOManager {
+interface NativeIOFileManager {
   // Opens the file with the given name if it exists and otherwise creates a
   // new file.
   [RaisesException] Promise<NativeIOFile> open(DOMString name);
@@ -118,6 +119,20 @@ interface NativeIOManager {
   // Renames the file from old name to new name atomically.
   [RaisesException] Promise<void> rename(DOMString old_name, 
                                          DOMString new_name);
+  
+  // Requests new capacity (in bytes) for usage by the current execution
+  // context. Returns the remaining amount of capacity available.
+  [ CallWith = ScriptState, RaisesException ] Promise<unsigned long long>
+  requestCapacity(unsigned long long requested_capacity);
+  
+  // Releases unused capacity (in bytes) from the current execution context.
+  // Returns the remaining amount of capacity available.
+  [ CallWith = ScriptState, RaisesException ] Promise<unsigned long long>
+  releaseCapacity(unsigned long long requested_capacity);
+
+  // Returns the capacity available for the current execution context.
+  [ CallWith = ScriptState, RaisesException ] Promise<unsigned long long>
+  getRemainingCapacity();
 };
 ```
 
@@ -184,9 +199,12 @@ Open a file, write to it, read from it, and close it to guarantee integrity of
 the file’s contents.
 
 ```javascript
-var file = await nativeIO.open("test_file");  // opens a file (creating it if
-                                              // needed)
+var file = await storageFoundation.open("test_file");  // opens a file (creating
+                                                       // it if needed)
 try {
+  await storageFoundation.requestCapacity(100);  // request 100 bytes of
+                                                 // capacity for this context.
+
   var writeSharedArrayBuffer = new SharedArrayBuffer(3);
   var writeBuffer = new Uint8Array(writeSharedArrayBuffer);
   writeBuffer.set([64, 65, 66]);
@@ -208,13 +226,13 @@ try {
 Create/delete a few files and list them.
 
 ```javascript
-await nativeIO.open("sunrise");
-await nativeIO.open("noon");
-await nativeIO.open("sunset");
-await nativeIO.getAll();  // ["sunset", "sunrise", "noon"]
+await storageFoundation.open("sunrise");
+await storageFoundation.open("noon");
+await storageFoundation.open("sunset");
+await storageFoundation.getAll();  // ["sunset", "sunrise", "noon"]
 
-await nativeIO.delete("noon");
-await nativeIO.getAll();  // ["sunrise", "noon"]
+await storageFoundation.delete("noon");
+await storageFoundation.getAll();  // ["sunrise", "noon"]
 ```
 
 ## Design Decisions
@@ -249,18 +267,40 @@ prevent concurrent, unsafe writes to the same file. Our current approach is
 therefore quite safe yet restrictive. We may revisit this decision based on
 developer feedback.
 
+### Quota
+
+Storage Foundation achieves fast and predictable performance by implementing its
+own quota management system.
+
+The web application must explicitly ask for capacity before storing any new
+data. This request will be granted according to the browser's quota
+guidelines. The application can then use the capacity to execute write
+operations. The application can also delete or overwrite data to make space for
+new data without issuing a new request.
+
+This means that anytime an application starts a new Javascript execution context
+(e.g., new tab, new worker, reloading the page), it must make sure it owns
+sufficient capacity before writing new data. It must therefore either overwrite
+existing files, delete/shrink old files or request additional capacity.
+
 ## Trying It Out
 
 A prototype of Storage Foundation API is available in Chrome Canary. To enable
-it, launch Chrome with the `-enable-blink-features=NativeIO `flag or enable
-“Experimental Web Platform feature” in ["chrome://flags"](chrome://flags).
+it, launch Chrome with the `-enable-blink-features=StorageFoundationAPI` flag or
+enable “Experimental Web Platform feature” in
+["chrome://flags"](chrome://flags).
+
+Storage Foundation API will be available in an [origin
+trial](https://web.dev/origin-trials/) starting with Chrome
+90. [Sign up here to participate.](https://developer.chrome.com/origintrials/#/view_trial/1673087261568139265)
 
 To make it easier to try the API, we’ve developed an [Emscripten
-Filesystem](https://github.com/fivedots/storage-foundation-api-emscripten-fs) and a
-[tutorial](https://github.com/fivedots/storage-foundation-api-porting-tutorial) with an
-example use-case.  We also provided a
-[wrapper](https://github.com/fivedots/storage-foundation-api-async-wrapper)
-that allows directly calling Storage Foundation API from C++ code.
+Filesystem](https://github.com/fivedots/storage-foundation-api-emscripten-fs)
+and a
+[tutorial](https://github.com/fivedots/storage-foundation-api-porting-tutorial)
+with an example use-case.  We also provided a
+[wrapper](https://github.com/fivedots/storage-foundation-api-async-wrapper) that
+allows directly calling Storage Foundation API from C++ code.
 
 ## Security Considerations
 
