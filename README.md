@@ -292,7 +292,7 @@ enable “Experimental Web Platform feature” in
 
 Storage Foundation API will be available in an [origin
 trial](https://web.dev/origin-trials/) starting with Chrome
-90. [Sign up here to participate.](https://developer.chrome.com/origintrials/#/view_trial/1673087261568139265)
+90. [Sign up here to participate.](https://developer.chrome.com/origintrials/#/view_trial/2916080758722396161)
 
 To make it easier to try the API, we’ve developed an [Emscripten
 Filesystem](https://github.com/fivedots/storage-foundation-api-emscripten-fs)
