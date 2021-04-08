@@ -147,6 +147,26 @@ The following functions are accessible after opening a FileHandle object.
 
 
 ```webidl
+dictionary NativeIOReadResult {
+  // The result of transferring the buffer passed to read. It is of the same
+  // type and length as source buffer.
+  ArrayBufferView buffer;
+  // The number of bytes that were succesfully read into buffer. This may be
+  // less than the buffer size, if errors occur or if the read range spans
+  // beyond the end of the file. It is set to zero if the read range is beyond
+  // the end of the file.
+  unsigned long long readBytes;
+};
+
+dictionary NativeIOWriteResult {
+  // The result of transferring the buffer passed to write. It is of the same
+  // type and length as source buffer.
+  ArrayBufferView buffer;
+  // The number of bytes that were successfully written into buffer. This may
+  // be less than the buffer size if an error occurs.
+  unsigned long long writtenBytes;
+};
+
 interface NativeIOFile {
   Promise<void> close();
 
@@ -164,34 +184,29 @@ interface NativeIOFile {
   // Otherwise the file is extended with zero-valued bytes.
   [RaisesException] Promise<void> setLength(unsigned long long length);
 
-  // Reads the contents of the file at the given offset into the given buffer.
-  // Returns the number of bytes that were successfully read. This may be less
-  // than the buffer size, if errors occur or if the read range spans
-  // beyond the end of the file. Returns zero if the read range is beyond the
-  // end of the file.
-  [RaisesException] Promise<unsigned long long> read(
-                      [AllowShared]  ArrayBufferView buffer,
+  // Reads the contents of the file at the given offset through a buffer that is
+  // the result of transferring the given buffer, which is then left detached.
+  // Returns a NativeIOReadResult with the transferred buffer and the the number
+  // of bytes that were successfully read.
+  [RaisesException] Promise<NativeIOReadResult> read(
+                      ArrayBufferView buffer,
                       unsigned long long file_offset);
 
   // Writes the contents of the given buffer into the file at the given offset.
-  // Returns the number of bytes successfully written. This may be less than
-  // the buffer size if an error occurs. The file will be extended if the write
-  // range spans beyond its length.
+  // The buffer is transferred before any data is written and is
+  // therefore left detached. Returns a NativeIOWriteResult with the transferred
+  // buffer and the number of bytes that were successfully written. The file
+  // will be extended if the write range spans beyond its length.
   //
   // Important: write only guarantees that the data has been written to the
   // file but it does not guarantee that the data has been persisted to the
   // underlying storage. To ensure that no data loss occurs on system crash,
   // flush must be called and it must successfully return.
-  [RaisesException] Promise<unsigned long long> write(
-                      [AllowShared]  ArrayBufferView buffer,
+  [RaisesException] Promise<NativeIOWriteResult> write(
+                      ArrayBufferView buffer,
                       unsigned long long file_offset);
 };
 ```
-
-Note: read and write currently take a SharedArrayBuffers as a parameter. This is
-done to highlight the fact that it might be possible to observe changes to the
-buffer as the browser processes it. The implications of this and the possibility
-of using simpler ArrayBuffers are being discussed.
 
 ##### **Reads and writes**
 
@@ -199,23 +214,23 @@ Open a file, write to it, read from it, and close it to guarantee integrity of
 the file’s contents.
 
 ```javascript
-var file = await storageFoundation.open("test_file");  // opens a file (creating
+const file = await storageFoundation.open("test_file");  // opens a file (creating
                                                        // it if needed)
 try {
   await storageFoundation.requestCapacity(100);  // request 100 bytes of
                                                  // capacity for this context.
 
-  var writeSharedArrayBuffer = new SharedArrayBuffer(3);
-  var writeBuffer = new Uint8Array(writeSharedArrayBuffer);
-  writeBuffer.set([64, 65, 66]);
-  await file.write(writeBuffer, 0);  // returns 3, the number of bytes written
+  const writeBuffer = new Uint8Array([64, 65, 66]);
+  // result.buffer contains the transferred buffer, result.writtenBytes is 3,
+  // the number of bytes written. writeBuffer is left detached.
+  let result =  await file.write(writeBuffer, 0);
 
-  var readSharedArrayBuffer = new SharedArrayBuffer(3);
-  var readBuffer = new Uint8Array(readSharedArrayBuffer);
-  await file.read(readBuffer, 1);  // Reads at offset 1, returns 2, the number 
-                                   // of bytes read
-
-  console.log(readBuffer);  // Uint8Array(3) [65, 66, 0]
+  const readBuffer = new Uint8Array(3);
+  // Reads at offset 1. result.buffer contains the transferred buffer,
+  // result.readBytes is 2, the number of bytes read. readBuffer is left
+  // detached.
+  result = await file.read(readBuffer, 1);
+  console.log(result.buffer);  // Uint8Array(3) [65, 66, 0]
 } finally {
  file.close();
 }
