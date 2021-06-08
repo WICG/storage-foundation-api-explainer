@@ -151,7 +151,7 @@ dictionary NativeIOReadResult {
   // The result of transferring the buffer passed to read. It is of the same
   // type and length as source buffer.
   ArrayBufferView buffer;
-  // The number of bytes that were succesfully read into buffer. This may be
+  // The number of bytes that were successfully read into buffer. This may be
   // less than the buffer size, if errors occur or if the read range spans
   // beyond the end of the file. It is set to zero if the read range is beyond
   // the end of the file.
