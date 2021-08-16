@@ -41,7 +41,7 @@ A few examples of what could be done with Storage Foundation API:
 *   Allow tried and true technologies to be performantly used as part of web
     applications e.g. using a port of your favorite storage library
 within a website
-*   Distribute a Wasm module for WebSQL, allowing developers to us it across
+*   Distribute a Wasm module for WebSQL, allowing developers to use it across
     browsers and opening the door to removing the unsupported API from Chrome
 *   Allow a music production website to operate on large amounts of media, by
     relying on Storage Foundation API’s performance and direct buffered access
