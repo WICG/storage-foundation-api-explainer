@@ -1,5 +1,14 @@
 # Storage Foundation API Explainer
 
+{% note %}
+
+**Note:** We are working on a new API surface that will replace this proposal.
+Check out [Access
+Handles](https://github.com/WICG/file-system-access/blob/main/AccessHandle.md)
+to learn more.
+
+{% endnote %}
+
 ## Authors
 
 *   Emanuel Krivoy (fivedots@chromium.org)
