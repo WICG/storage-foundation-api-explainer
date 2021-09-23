@@ -1,13 +1,9 @@
 # Storage Foundation API Explainer
 
-{% note %}
-
-**Note:** We are working on a new API surface that will replace this proposal.
-Check out [Access
+> **Note:** We are working on a new API surface that will replace this proposal.
+> Check out [Access
 Handles](https://github.com/WICG/file-system-access/blob/main/AccessHandle.md)
-to learn more.
-
-{% endnote %}
+> to learn more.
 
 ## Authors
 
