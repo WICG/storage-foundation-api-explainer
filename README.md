@@ -1,5 +1,7 @@
 # Storage Foundation API Explainer
 
+⚠️⚠️ **Status**: These features are now developed under https://github.com/WICG/file-system-access/ ⚠️⚠️
+
 > **Note:** We are working on a new API surface that will replace this proposal.
 > Check out [Access
 Handles](https://github.com/WICG/file-system-access/blob/main/AccessHandle.md)
